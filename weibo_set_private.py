@@ -5,7 +5,7 @@
 
 原理：
   列表接口  GET  https://weibo.com/ajax/statuses/mymblog?uid=&page=&feature=0[&since_id=]
-  改权限    POST https://weibo.com/ajax/statuses/modifyVisible   body: {"id": mid, "visible": 1}
+  改权限    POST https://weibo.com/ajax/statuses/modifyVisible   body(表单): ids=<mid>&visible=1
   visible 取值（微博官方开放平台 statuses 文档）：0=公开, 1=仅自己可见, 2=密友可见, 3=指定分组
 
 准备：
@@ -106,8 +106,18 @@ def fetch_page(s, uid, page, since_id):
 
 def set_visible(s, mid, visible):
     r = s.post("https://weibo.com/ajax/statuses/modifyVisible",
-               data=json.dumps({"id": str(mid), "visible": visible}),
-               headers={"content-type": "application/json"}, timeout=20)
+               data={"ids": str(mid), "visible": visible},
+               headers={
+                   "content-type": "application/x-www-form-urlencoded",
+                   "accept": "application/json, text/plain, */*",
+                   "origin": "https://weibo.com",
+                   "referer": f"https://weibo.com/u/{TARGET_UID.strip()}",
+                   "client-version": "v1.1.251",
+                   "server-version": "v2026.10.12.1",
+                   "sec-fetch-dest": "empty",
+                   "sec-fetch-mode": "cors",
+                   "sec-fetch-site": "same-origin",
+               }, timeout=20)
     try:
         j = r.json()
     except Exception:
